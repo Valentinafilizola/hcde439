@@ -43,9 +43,16 @@ h2 {
 }
 
 .header img {
-  width: 50%;
+  width: 300px;
+  height: 300px;
   object-fit: cover;
 }
+
+ .schematic img {
+  width: 500px;
+  height: 400px;
+  object-fit: cover;
+ }
 
 .grid {
   display: grid;

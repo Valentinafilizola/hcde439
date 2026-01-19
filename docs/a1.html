@@ -11,8 +11,160 @@
   <body>
     <h1>Valentina's Assignment 1</h1>
     <div class="header">
-      <img src="red-panda.jpg" />
       <p>Here is all the documentation for assignment 1!</p>
-    </div>
+ </div>
+      <p>Schematic: </p>
+      <div class="schematic">
+      <img src="IMG_0970.PNG" />
+      <p>I chose to draws the schematics like this because I used 4 pins for each LED, 2 resistors, and 2 pins that connect to GRND.</p>
+      <br>
+
+      <p>Circuit: </p>
+       <img src="IMG_0872.jpg" />
+       <p> I arranged my LEDS like this to keep my breadboard organized and intuitive for when I program it. </p>
+      <br>
+      <p>Ohm's Law Calculations</p>
+      <img src="IMG_0969.PNG" />
+      <p>I chose to use a 220 OHM resistor for each LED because after calculating Ohm's law for each LED, 220 was the safest and most reasonable option.</p>
+      <br>
+      <p>Firmware:</p>
+
+     <pre><code>
+/*
+  Valentina Filizola
+  Blink! Assignment 
+  HCDE 439
+*/
+
+// Timer used for length that each pin would be on for
+int timer = 100; 
+
+// Initializes each pin
+void setup() {
+  // Use a for loop to initialize each pin as an output:
+  for (int thisPin = 4; thisPin < 8; thisPin++) {
+    // Tells Arduino how each pin will behave
+    pinMode(thisPin, OUTPUT);
+  }
+}
+
+// Initializes each pin's action
+void loop() {
+  // Nested for loop: outer loop acts as a counter for the number of times the pattern will be repeated (9 times)
+    for (int count = 0 ; count < 9; count ++) {
+      // Inner for loop indicates that pin 4 and 5 (red and blue LED's) will blink 
+      for (int thisPin = 4; thisPin <= 5 ; thisPin++) { 
+        // Turns the pin on:
+        digitalWrite(thisPin, HIGH); 
+        // Time that pin is on for
+        delay(timer);
+        // Turn the pin off:
+        digitalWrite(thisPin, LOW);  
+      }
+    }
+    
+    // Nested for loop: outer loop acts as a counter, loops through 9 times
+    for (int count = 0 ; count < 9; count ++) {
+      // Inner for loop indicates that pin 6 and 7 (green and yellow LED's) will blink 
+      for (int thisPin = 6; thisPin <= 7 ; thisPin++) { 
+        // Turns the pin on:
+        digitalWrite(thisPin, HIGH); 
+        // Time that pin is on for
+        delay(timer);
+        // Turn the pin off:
+        digitalWrite(thisPin, LOW); 
+      }
+    }
+
+    //Array that initializes evenPins, representing the even pins(red and green LED's) 
+    int evenPins[] = {4, 6};
+
+    // Nested for loop: outer loop acts as a counter, loops through 9 times
+    for (int count = 0; count < 9; count++) {
+      // Inner for loop loops through the array
+      for (int i = 0; i < 2; i++) {
+        // Turns the pin on:
+        digitalWrite(evenPins[i], HIGH);
+        // Time that pin is on for
+        delay(timer);
+        // Turn the pin off:
+        digitalWrite(evenPins[i], LOW);
+      }
+    }
+
+    //Array that initializes oddPins, representing the odd pins(blue and yellow LED's) 
+    int oddPins[] = {5, 7};
+
+    // Nested for loop: outer loop acts as a counter, loops through 9 times
+    for (int count = 0; count < 9; count++) {
+      // Inner for loop loops through the array
+      for (int i = 0; i < 2; i++) {
+         // Turns the pin on:
+        digitalWrite(oddPins[i], HIGH);
+        // Time that pin is on for
+        delay(timer);
+        // Turn the pin off:
+        digitalWrite(oddPins[i], LOW);
+      }
+    }
+
+        // Nested for loop: outer loop acts as a counter, loops through 3 times
+        for (int count = 0; count < 3; count++) {
+          // innerloop loops from the highest pin to the lowest:
+          for (int thisPin = 7; thisPin >= 4; thisPin--) { 
+            // turn the pin on:
+            digitalWrite(thisPin, HIGH);
+            // Time that pin is on for
+            delay(timer);
+
+            // Turn the pin off:
+            digitalWrite(thisPin, LOW); 
+          }
+
+          // Other innerloop loops from the lowest pin to the highest:
+          for (int thisPin = 4; thisPin <= 7; thisPin++) { 
+            // turn the pin on:
+            digitalWrite(thisPin, HIGH);
+            // Time that pin is on for
+            delay(timer);
+            // turn the pin off:
+            digitalWrite(thisPin, LOW);
+          }
+        }
+            
+}
+</code></pre>
+<br>
+
+<p>Circuit's Operation</p>
+<img src="Untitled design.gif" alt="My GIF">
+<br>
+
+      </div>
+
+
+      
+      <p> Additional questions:
+<br>
+1: Draw a graph where the X axis is time and the Y axis is voltage across the LEDs. Draw a line for each of your 3 LEDs.
+<img src="IMG_0971.PNG" alt="My drawing">
+<br>
+
+2: How many LEDs could you blink independently with your Arduino? How much current would that draw?
+<br>
+Since there are 20 total pins on the arduino, I could make 20 LED's blink independently. Multiplying the 20 mins and the 20mA per pin, the current would be 400mA. This is not recommended though because that will be too much current for the Arduino to push through at once. 
+<br>
+
+3: How fast do you need to blink your LEDs until you no longer can tell that they are blinking?
+<br>
+About 60 times per second (60Hz). 
+<br>
+
+4: Did you use AI tools in completing this assignment? If yes, please provide details on how/when, as well as a brief reflection. If no, you can either leave this question blank, or provide other information if you'd like.
+<br>
+I used ChatGPT to figure out how to insert a code snippet in HTML. This taught me how to insert my firmware for future assignmnets.  
+
+</p>
+   
   </body>
 </html>
