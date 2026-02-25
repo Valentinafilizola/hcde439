@@ -1,0 +1,224 @@
+<!-- FINAL TODO's -->
+<!-- -
+- import photos
+- build circuit
+-->
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, maximum-scale=1.0" />
+
+    <title>Valentina's HCDE 439 Physical Computing Page!</title>
+
+    <link href="style1.css" rel="stylesheet" type="text/css" />
+  </head>
+
+  <body>
+    <h1>Valentina's Assignment 4</h1>
+
+    <div class="header">
+      <img src="A5.gif" alt="My GIF" />
+      <p>Here is all the documentation for assignment 4!</p>
+    </div>
+
+    <br />
+
+    <p>Schematic: </p>
+    <div class="schematic">
+      <img src="IMG_SCHEMATIC_NEW_1.jpeg" />
+      <img src="IMG_SCHEMATIC_NEW_2.jpeg" />
+
+      <p>
+        This schematic uses an N-MOSFET to control a DC motor (high-load) using PWM from the Arduino (logic).
+        <br />
+        The motor is powered by an external 12V supply, while the Arduino is powered by USB, and both share ground.
+        <br />
+        A 270Ω resistor is used between D9 and the MOSFET gate to limit gate current: 5V/270Ω ≈ 0.0185A (18.5mA).
+        <br />
+        A 10kΩ pulldown resistor keeps the gate OFF during reset: 5V/10kΩ = 0.0005A (0.5mA).
+        <br />
+        A flyback diode is placed across the motor to protect the MOSFET from voltage spikes.
+        <br />
+        C1 (100µF) and C2 (0.1µF) go across +12V and GND to reduce voltage dips and noise from the motor.
+        <br />
+        The DHT sensor uses a library and sends DATA to D2 (with a 10k pull-up to 5V if needed).
+      </p>
+
+      <br />
+
+      <p>Circuit: </p>
+      <img src="IMG_CIRCUIT_NEW.jpg" />
+      <p>
+        I built my circuit like this so the Arduino controls the MOSFET gate on D9, and the motor stays on external 12V.
+        <br />
+        The grounds are tied together so the MOSFET gate voltage is referenced correctly.
+      </p>
+
+      <br />
+
+      <p>Ohm's Law Calculations</p>
+      <br />
+      <img src="IMG_CALCS_NEW_1.jpeg" />
+      <img src="IMG_CALCS_NEW_2.jpeg" />
+      <p>
+        Gate resistor: R = V/I = 5V/0.02A = 250Ω, so I chose 270Ω to stay under 20mA peak.
+        <br />
+        Gate pulldown: R = V/I = 5V/0.0005A = 10kΩ, so I chose 10kΩ to keep the MOSFET off at boot.
+      </p>
+
+      <br />
+
+      <p>Firmware:</p>
+
+      <pre><code>
+// Include the DHT library so the sensor input uses a library.
+#include &lt;DHT.h&gt;
+
+// Define the Arduino pin used for DHT sensor data.
+#define DHTPIN 2
+
+// Define the DHT sensor type (change to DHT11 if that is your sensor).
+#define DHTTYPE DHT22
+
+// Create the DHT object using the chosen pin and sensor type.
+DHT dht(DHTPIN, DHTTYPE);
+
+// Store the PWM pin used to drive the MOSFET gate with analogWrite().
+const int PWM_PIN = 9;
+
+// Store the most recent humidity reading (percent).
+float humidity = 0.0;
+
+// Store the most recent temperature reading (Celsius).
+float temperatureC = 0.0;
+
+// Store the PWM value (0–255) that controls motor power.
+int pwmValue = 0;
+
+// Run setup once to initialize Serial, sensor library, and output states.
+void setup() {
+  // Start Serial so sensor values and PWM values can be documented.
+  Serial.begin(9600);
+
+  // Initialize the DHT sensor library so readings work.
+  dht.begin();
+
+  // Set PWM pin mode to OUTPUT so the pin actively drives HIGH/LOW.
+  pinMode(PWM_PIN, OUTPUT);
+
+  // Set PWM to 0 so the MOSFET starts OFF during boot (safe default).
+  analogWrite(PWM_PIN, 0);
+
+  // Print a startup message for debugging/documentation.
+  Serial.println("Boot: DHT + MOSFET PWM motor control");
+}
+
+// Loop forever to read sensor values and control motor speed.
+void loop() {
+  // Read humidity from the DHT sensor (returns NaN if it fails).
+  humidity = dht.readHumidity();
+
+  // Read temperature in Celsius from the DHT sensor (returns NaN if it fails).
+  temperatureC = dht.readTemperature();
+
+  // Check for failed sensor reads to prevent invalid control.
+  if (isnan(humidity) || isnan(temperatureC)) {
+    // Print an error message so the failure is visible.
+    Serial.println("DHT read failed -> PWM=0 (motor off)");
+
+    // Turn motor off by setting PWM to 0 (MOSFET gate low duty).
+    analogWrite(PWM_PIN, 0);
+
+    // Delay so the loop does not spam reads and prints.
+    delay(500);
+
+    // Return early so no invalid PWM mapping happens.
+    return;
+  }
+
+  // Convert humidity (0–100%) into PWM duty cycle (0–255).
+  pwmValue = map((int)humidity, 0, 100, 0, 255);
+
+  // Constrain PWM to valid range in case of small sensor edge cases.
+  pwmValue = constrain(pwmValue, 0, 255);
+
+  // Output PWM on D9 to control MOSFET gate and motor power from external 12V.
+  analogWrite(PWM_PIN, pwmValue);
+
+  // Print humidity label for documentation.
+  Serial.print("Humidity(%): ");
+
+  // Print the humidity value for documentation.
+  Serial.print(humidity);
+
+  // Print temperature label for documentation.
+  Serial.print("  Temp(C): ");
+
+  // Print the temperature value for documentation.
+  Serial.print(temperatureC);
+
+  // Print PWM label for documentation.
+  Serial.print("  PWM(0-255): ");
+
+  // Print the computed PWM value for documentation.
+  Serial.println(pwmValue);
+
+  // Delay to keep the reading rate stable and readable.
+  delay(250);
+}
+      </code></pre>
+
+      <br />
+
+      <p>Circuit's Operation</p>
+      <img src="A5.gif" alt="My GIF" />
+      <br />
+      This circuit uses a DHT humidity sensor (library input) and a DC motor (high-load output).
+      <br />
+      The Arduino reads humidity, maps it to a PWM value, and uses analogWrite() on D9 to drive the MOSFET gate.
+      <br />
+      The MOSFET switches the motor using the external 12V supply, while the Arduino stays on 5V USB logic power.
+      <br />
+      The flyback diode protects the MOSFET from motor voltage spikes, and the capacitors reduce supply noise.
+
+      <br /><br />
+
+      <p>
+        Additional questions:
+        <br /><br />
+
+        1: These are the datasheets for the n-mosfet transistor: DMT6009LCT, IRLZ44N, P30N06LE. For your mosfet, what is the absolute maximum amount of current between pins 2 and 3?
+        <br />
+        Pins 2 and 3 are Drain and Source, so this is the max drain current (ID).
+        <br />
+        I read the text on my MOSFET and matched it to the correct datasheet value for ID(max).
+        <br /><br />
+
+        2: Draw a schematic for a circuit with using at least your arduino, a DC motor, a flyback diode, and capacitors between power and ground. Find parts with datasheets you could use for each of these schematic components.
+        <br />
+        My schematic shows Arduino + N-MOSFET + DC motor + flyback diode + C1 (100µF) + C2 (0.1µF) across +12V and GND.
+        <br />
+        Example parts: DC motor (kit motor), diode (1N4007), capacitors (100µF electrolytic and 0.1µF ceramic), MOSFET (kit MOSFET).
+        <br /><br />
+
+        3: Here is the datasheet for the L293D chip. Draw a schematic using at least your arduino, this chip, and two motors. Write (pseudo) code that shows how you would move the motors both forward, both back, then one forward one back, and one back then forward.
+        <br />
+        Schematic: Arduino drives IN1/IN2/IN3/IN4 and EN pins, L293D VCC1=5V logic, VCC2=external motor voltage, common ground, two motors on outputs.
+        <br />
+        Pseudocode:
+        <br />
+        SET ENA PWM, SET ENB PWM
+        <br />
+        BOTH FORWARD: IN1=H IN2=L, IN3=H IN4=L
+        <br />
+        BOTH BACK: IN1=L IN2=H, IN3=L IN4=H
+        <br />
+        A FORWARD B BACK: IN1=H IN2=L, IN3=L IN4=H
+        <br />
+        A BACK B FORWARD: IN1=L IN2=H, IN3=H IN4=L
+      </p>
+    </div>
+  </body>
+</html>

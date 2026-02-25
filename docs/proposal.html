@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, maximum-scale=1.0" />
+
+    <title>Valentina's HCDE 439 Physical Computing Page!</title>
+
+    <link href="style.css" rel="stylesheet" type="text/css" />
+  </head>
+  <body>
+    <h1>Valentina's Final Project Proposal</h1>
+    <div class="header">
+      <p>Here is my final project proposal for HCDE 439!</p>
+    </div>
+
+    <p><strong>Valentina Filizola</strong></p>
+    <p><strong>HCDE 439 | Final Project Proposal</strong></p>
+    <p><strong>Terrasync: An Ambient Focus Terrarium</strong></p>
+    <br />
+
+    <p>Project Concept / Motivation</p>
+    <div class="schematic">
+      <p>
+        One way I maintain motivation while working is by cultivating a clean and
+        visually engaging environment. I have found that surrounding myself with
+        meaningful objects such as small trinkets, warm lighting, and photographs
+        of friends and family positively influences my focus and overall mindset.
+        However, I wanted to design something that extends beyond aesthetics and
+        serves a functional and motivational purpose. Terrasync emerged from this
+        intention to create a physical object that not only enhances the visual
+        quality of a workspace but also actively supports focus and environmental
+        awareness. In addition, this project provides an opportunity to further
+        develop my Unity skills and strengthen my technical fluency in interactive
+        systems.
+      </p>
+      <br />
+
+      <p>Project Description</p>
+      <p>
+        Terrasync is a small dome-shaped ambient desk lamp that integrates
+        environmental sensing with a synchronized digital ecosystem in Unity. The
+        physical form will resemble a compact terrarium dome, designed as a cohesive
+        and intentional desktop object rather than an exposed electronics prototype.
+        Inside, RGB LEDs will create a soft, diffused glow, while a photoresistor
+        embedded on the side of the base will detect ambient light levels in the
+        surrounding environment. The LED brightness will dynamically respond to room
+        lighting, allowing the lamp to adapt naturally to its context. Through serial
+        communication, the Arduino will transmit environmental data to a Unity
+        application running as a small widget on the user’s laptop. The Unity interface
+        will display a terrarium-like simulation that transitions between daytime and
+        nighttime states based either on the real-world time of day or the brightness
+        detected by the photoresistor, creating a synchronized relationship between the
+        physical environment and the digital ecosystem.
+      </p>
+
+      <p>
+        In addition to environmental responsiveness, Terrasync introduces a focus
+        interaction through a side-mounted button integrated into the enclosure. A
+        single press activates Focus Mode, prompting a digital plant within the Unity
+        terrarium to begin growing. Pressing the button again initiates a pause request,
+        which is clearly displayed in the Unity widget to prevent accidental interruption.
+        A second confirming press finalizes the pause and causes the growing plant to
+        wither, visually representing a break in focus. This layered interaction should
+        discourage unintentional disengagement while preserving user control. By combining
+        ambient light adaptation with a tangible focus mechanism, Terrasync reframes
+        productivity as something cultivated within an ecosystem rather than measured
+        solely through timers.
+      </p>
+      <br />
+
+      <p>Anticipated Bill of Materials</p>
+      <p>
+        The physical prototype will include an Arduino Uno, RGB LEDs, a photoresistor
+        for light sensing, a push button for interaction, appropriate resistors for
+        current limiting and voltage division, a breadboard or perfboard for circuit
+        assembly, and wires. A USB cable will provide power and enable serial communication
+        between the Arduino and the Unity application. The enclosure will be 3D printed,
+        consisting of a translucent dome to diffuse the LED light and an opaque base to
+        house the electronics. The button and photoresistor will be embedded into the side
+        of the base to maintain a clean, integrated product form.
+      </p>
+
+      <p>
+        On the software side, Unity will be used to develop a lightweight desktop widget
+        that visualizes the terrarium simulation. C# scripts will manage serial
+        communication, environmental state mapping, and focus mode logic. The Unity
+        interface will remain compact and peripheral, reinforcing the system’s role as
+        calm, ambient technology rather than a disruptive productivity tool.
+      </p>
+      <br />
+
+      <p>Timeline and Contingency Plans</p>
+      <p>
+        In Week 1, I will construct the hardware system, including the LED circuit,
+        photoresistor voltage divider, and button input. I will establish reliable serial
+        communication between Arduino and Unity, ensuring that light values and button
+        states are correctly transmitted and received. The milestone for this week will be
+        a Unity scene that responds in real time to sensor input and button presses. If
+        serial communication becomes unstable, I will simulate environmental values within
+        Unity while debugging hardware independently.
+      </p>
+
+      <p>
+        In Week 2, I will develop the terrarium simulation in Unity, implementing day and
+        night transitions based on either system time or live photoresistor data. I will
+        also implement the focus state, including Idle, Active Focus, Pause Requested, and
+        Paused states. Growth and withering animations will be tied directly to these
+        states, and LED brightness will be mapped to environmental readings to maintain
+        synchronization between the physical and digital systems. If real-time mapping
+        proves too sensitive, I will implement threshold-based lighting transitions to
+        maintain stability.
+      </p>
+
+      <p>
+        In Week 3, I will finalize the 3D-printed enclosure, integrate and secure all
+        internal components, refine light diffusion for a soft ambient glow, and polish
+        the Unity interface for visual clarity and subtlety. The final milestone will be a
+        fully integrated prototype demonstrating cohesive hardware input, environmental
+        sensing, serial communication, and responsive digital visualization. If fabrication
+        challenges arise, I will modify the enclosure while preserving the functional and
+        aesthetic integration of the system.
+      </p>
+      <br />
+
+      <p>Illustration of Final System</p>
+      <img src="Screenshot 2026-02-24 at 6.02.06 PM.png" alt="Description of image">
+      <br />
+    </div>
+  </body>
+</html>
