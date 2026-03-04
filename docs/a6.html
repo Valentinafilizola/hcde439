@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, maximum-scale=1.0" />
+
+    <title>Valentina's HCDE 439 Physical Computing Page!</title>
+
+    <link href="style1.css" rel="stylesheet" type="text/css" />
+  </head>
+  <body>
+    <h1>Valentina's Assignment 6</h1>
+    <div class="header">
+      <p>Here is all the documentation for assignment 6!</p>
+ </div>
+      <p>Schematic: </p>
+      <div class="schematic">
+      <img src="IMG_0996.jpeg" />
+      <p>I chose to draws the schematics like this because I used 1 pin for my LED, 1 resistor, the built in pull-up resistor for the button, 
+        1 one pin that connects the pot to 5V, and 3 pins that connect to GRND.</p>
+      <br>
+
+      <p>Circuit: </p>
+       <img src="IMG_1279.jpeg" />
+       <p> I arranged my components like this to keep my breadboard organized and intuitive for when I program it and interact with it while moving the mouse. </p>
+      <br>
+      <p>Ohm's Law Calculations</p>
+      <img src="IMG_0997.jpeg" />
+      <p>I chose to use a 220 OHM resistor for the green LED because after calculating Ohm's law the LED, 220 was the safest and most reasonable option. 
+        <br> Additionally, I did not use a resistor for the button because it is using the built in 10k pullup resistor.</p>
+      <br>
+      <p>Firmware:</p>
+
+     <pre><code>
+/*
+  Valentina Filizola
+  Talking to the Web! Assignment 
+  HCDE 439
+*/
+
+// creates variables for the serial connection and reader
+let port, reader;
+
+// creates a variable that stores the latest full line received from Arduino
+let latestLine = "";
+
+// creates a variable to store the button state from Arduino (1 not pressed, 0 pressed with INPUT_PULLUP)
+let buttonState = 1;
+
+// creates a variable to store the potentiometer value from Arduino (0–1023)
+let potValue = 0;
+
+// creates a variable to store the LED brightness we send to Arduino (0–255)
+let brightness = 0;
+
+// creates a variable to store the connect button element
+let connectBtn;
+
+
+// setup() runs once when the webpage starts
+function setup() {
+
+  // creates a canvas for drawing visuals
+  createCanvas(500, 350);
+
+  // sets the font for readable debug text
+  textFont("monospace");
+
+  // creates a button the user clicks to connect the Arduino
+  connectBtn = createButton("Connect Arduino");
+
+  // positions the button near the top-left of the page
+  connectBtn.position(10, 10);
+
+  // when the button is pressed, runs the serial connection function
+  connectBtn.mousePressed(connectToSerial);
+
+}
+
+
+// draw() runs repeatedly
+function draw() {
+
+  // sets a dark background
+  background(20);
+
+  // sets text color to white
+  fill(255);
+
+  // sets the text size
+  textSize(14);
+
+  // shows the current button state coming from Arduino
+  text(`buttonState (1=not pressed, 0=pressed): ${buttonState}`, 10, 70);
+
+  // shows the current potentiometer value coming from Arduino
+  text(`potValue (0–1023): ${potValue}`, 10, 90);
+
+  // shows the brightness value we are sending to Arduino
+  text(`brightness sent (0–255): ${brightness}`, 10, 110);
+
+  // shows the raw last line received from Arduino for debugging
+  text(`raw from Arduino: ${latestLine}`, 10, 130);
+
+  // maps the pot value to a circle size
+  let r = map(potValue, 0, 1023, 10, 200);
+
+  // if the Arduino button is pressed, show the circle
+  if (buttonState === 0) {
+
+    // set the fill based on brightness for a visible link between web input and drawing
+    fill(brightness);
+
+    // remove the circle outline
+    noStroke();
+
+    // draws the circle
+    circle(width * 0.65, height * 0.55, r);
+
+  } else {
+
+    // show instructions when the button is not pressed
+    fill(150);
+
+    // write instruction text
+    text("Press the Arduino button to show the circle", 10, 160);
+
+  }
+
+}
+
+
+// mouseMoved() runs whenever the mouse moves on the page
+async function mouseMoved() {
+
+  // stops if the serial port is not connected yet
+  if (!port) return;
+
+  // maps the mouse x position to LED brightness range (0–255)
+  brightness = map(mouseX, 0, width, 0, 255);
+
+  // constrains brightness to valid bounds and round to an integer
+  brightness = Math.round(constrain(brightness, 0, 255));
+
+  // gets a writer so data is sent to the Arduino
+  const writer = port.writable.getWriter();
+
+  // sends brightness with a newline so Arduino Serial.parseInt() reads it cleanly
+  await writer.write(new TextEncoder().encode(brightness + "\n"));
+
+  // releases the writer lock so it can be used again later
+  writer.releaseLock();
+
+}
+
+
+// connectToSerial() opens the WebSerial connection
+async function connectToSerial() {
+
+  try {
+
+    // asks the user to select the Arduino serial port
+    port = await navigator.serial.requestPort();
+
+    // opens the port at the same baud rate used in Arduino code
+    await port.open({ baudRate: 9600 });
+
+    // creates a text decoder stream to convert incoming bytes to text
+    const decoder = new TextDecoderStream();
+
+    // pipes serial data through the decoder
+    port.readable.pipeTo(decoder.writable);
+
+    // gets a reader to read the decoded text stream
+    reader = decoder.readable.getReader();
+
+    // starts the continuous serial reading loop
+    readSerialLoop();
+
+  } catch (err) {
+
+    // logs any errors that happen during connection
+    console.log("Serial connection error:", err);
+
+  }
+
+}
+
+
+// readSerialLoop() continuously reads lines from Arduino
+async function readSerialLoop() {
+
+  // creates a buffer string to store partial serial data
+  let buffer = "";
+
+  // keeps reading forever
+  while (true) {
+
+    // reads the next chunk of decoded text from serial
+    const { value, done } = await reader.read();
+
+    // stops the loop if the stream is closed
+    if (done) break;
+
+    // skips if no value was received
+    if (!value) continue;
+
+    // adds the new chunk to the buffer
+    buffer += value;
+
+    // splits the buffer into lines using newline characters
+    let lines = buffer.split("\n");
+
+    // keeps the last partial line in the buffer
+    buffer = lines.pop();
+
+    // processes each complete line
+    for (let line of lines) {
+
+      // removes extra spaces from the line
+      line = line.trim();
+
+      // skips empty lines
+      if (!line) continue;
+
+      // stores the latest raw line for display/debugging
+      latestLine = line;
+
+      // splits the CSV line into parts
+      const parts = line.split(",");
+
+      // Arduino sends: potValue,buttonState
+      if (parts.length === 2) {
+
+        // converts pot value from string to number
+        potValue = Number(parts[0]);
+
+        // converts button state from string to number
+        buttonState = Number(parts[1]);
+
+      }
+
+    }
+
+  }
+
+}
+
+//////////////////// p5js code //////////////////////////////
+
+// creates variables for the serial connection and reader
+let port, reader;
+
+// creates a variable that stores the latest full line received from Arduino
+let latestLine = "";
+
+// creates a variable to store the button state from Arduino (1 not pressed, 0 pressed with INPUT_PULLUP)
+let buttonState = 1;
+
+// creates a variable to store the potentiometer value from Arduino (0–1023)
+let potValue = 0;
+
+// creates a variable to store the LED brightness we send to Arduino (0–255)
+let brightness = 0;
+
+// creates a variable to store the connect button element
+let connectBtn;
+
+
+// setup() runs once when the webpage starts
+function setup() {
+
+  // creates a canvas for drawing visuals
+  createCanvas(500, 350);
+
+  // sets the font for readable debug text
+  textFont("monospace");
+
+  // creates a button the user clicks to connect (required by WebSerial permissions)
+  connectBtn = createButton("Connect Arduino");
+
+  // positions the button near the top-left of the page
+  connectBtn.position(10, 10);
+
+  // when the button is pressed, run the serial connection function
+  connectBtn.mousePressed(connectToSerial);
+
+}
+
+
+// draw() runs repeatedly
+function draw() {
+
+  // sets a dark background
+  background(20);
+
+  // sets text color to white
+  fill(255);
+
+  // sets the text size
+  textSize(14);
+
+  // shows the current button state coming from Arduino
+  text(`buttonState (1=not pressed, 0=pressed): ${buttonState}`, 10, 70);
+
+  // shows the current potentiometer value coming from Arduino
+  text(`potValue (0–1023): ${potValue}`, 10, 90);
+
+  // shows the brightness value we are sending to Arduino
+  text(`brightness sent (0–255): ${brightness}`, 10, 110);
+
+  // shows the raw last line received from Arduino for debugging
+  text(`raw from Arduino: ${latestLine}`, 10, 130);
+
+  // maps the pot value to a circle size
+  let r = map(potValue, 0, 1023, 10, 200);
+
+  // if the Arduino button is pressed, show the circle
+  if (buttonState === 0) {
+
+    // sets the fill based on brightness for a visible link between web input and drawing
+    fill(brightness);
+
+    // removes the circle outline
+    noStroke();
+
+    // draws the circle
+    circle(width * 0.65, height * 0.55, r);
+
+  } else {
+
+    // shows instructions when the button is not pressed
+    fill(150);
+
+    // writes instruction text
+    text("Press the Arduino button to show the circle", 10, 160);
+
+  }
+
+}
+
+
+// mouseMoved() runs whenever the mouse moves on the page
+async function mouseMoved() {
+
+  // stops if the serial port is not connected yet
+  if (!port) return;
+
+  // map the mouse x position to LED brightness range (0–255)
+  brightness = map(mouseX, 0, width, 0, 255);
+
+  // constrains brightness to valid bounds and round to an integer
+  brightness = Math.round(constrain(brightness, 0, 255));
+
+  // gets a writer so we can send data to Arduino
+  const writer = port.writable.getWriter();
+
+  // sends brightness with a newline so Arduino Serial.parseInt() reads it cleanly
+  await writer.write(new TextEncoder().encode(brightness + "\n"));
+
+  // releases the writer lock so it can be used again later
+  writer.releaseLock();
+
+}
+
+
+// connectToSerial() opens the WebSerial connection
+async function connectToSerial() {
+
+  try {
+
+    // asks the user to select the Arduino serial port
+    port = await navigator.serial.requestPort();
+
+    // opens the port at the same baud rate used in Arduino code
+    await port.open({ baudRate: 9600 });
+
+    // creates a text decoder stream to convert incoming bytes to text
+    const decoder = new TextDecoderStream();
+
+    // pipes serial data through the decoder
+    port.readable.pipeTo(decoder.writable);
+
+    // gets a reader to read the decoded text stream
+    reader = decoder.readable.getReader();
+
+    // starts the continuous serial reading loop
+    readSerialLoop();
+
+  } catch (err) {
+
+    // logs any errors that happen during connection
+    console.log("Serial connection error:", err);
+
+  }
+
+}
+
+
+// readSerialLoop() continuously reads lines from Arduino
+async function readSerialLoop() {
+
+  // creates a buffer string to store partial serial data
+  let buffer = "";
+
+  // keeps reading forever
+  while (true) {
+
+    // reads the next chunk of decoded text from serial
+    const { value, done } = await reader.read();
+
+    // stops the loop if the stream is closed
+    if (done) break;
+
+    // skips if no value was received
+    if (!value) continue;
+
+    // adds the new chunk to the buffer
+    buffer += value;
+
+    // splits the buffer into lines using newline characters
+    let lines = buffer.split("\n");
+
+    // keeps the last partial line in the buffer
+    buffer = lines.pop();
+
+    // processes each complete line
+    for (let line of lines) {
+
+      // removes extra spaces from the line
+      line = line.trim();
+
+      // skips empty lines
+      if (!line) continue;
+
+      // stores the latest raw line for display/debugging
+      latestLine = line;
+
+      // splits the CSV line into parts
+      const parts = line.split(",");
+
+      // Arduino sends: potValue,buttonState
+      if (parts.length === 2) {
+
+        // converts pot value from string to number
+        potValue = Number(parts[0]);
+
+        // converts button state from string to number
+        buttonState = Number(parts[1]);
+
+      }
+
+    }
+
+  }
+
+}
+
+</code></pre>
+<br>
+
+<p>Circuit's Operation</p>
+<img src="A6.gif" alt="My GIF">
+<p>
+    Context:
+    <br>
+    Inside the webpage, a button prompts the user to connect the Arduino. Once the user presses the button on the webpage, 
+    <br> the user can then press the button on the bread board to turn the LED on. Once that is on, 
+    <br>the LED fades based on the location of the mouse on the screen on the X-axis. 
+    <br> The mouse's location also determines the opacity of the circle displayed on the webpage. 
+    <br> The potentiometer determines the size of the circle displayed on the webpage. 
+    <br> Additionally, a display showing the button state, the potentiometer value, the LED brightness, and the serial reading from the Arduino is shown. 
+    <br>
+    <br>
+    Zoom in to P5 webpage
+</p>
+<img src="A6SS.jpg" alt="My pic">
+
+<br>
+
+      </div>
+
+   
+  </body>
+</html>
