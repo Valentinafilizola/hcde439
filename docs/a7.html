@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, maximum-scale=1.0" />
+
+    <title>Valentina's HCDE 439 Physical Computing Page!</title>
+
+    <link href="style1.css" rel="stylesheet" type="text/css" />
+  </head>
+  <body>
+    <h1>TerraSync</h1>
+    <div class="header">
+      <p>Here is all the documentation for my final project!</p>
+ </div>
+
+ <br><br>
+
+  <p> <Strong>Concept Motivation</Strong>
+
+    <br> <br>
+    My initial motivation for this project was to create a product that would be useful while I study. 
+    <br> However, after reviewing my timeframe and project requirements, I decided to challenge myself 
+    to go beyond the idea of a timer and create something that I could physically interact with while I study which would then 
+    display feedback of its own in the virtual world while also reienforcing my study progress. This project challenged my time management skills
+    as I had 3 weeks to design, 3D print, prototype my circuit and widget, ensure the Arduino-Unity connection, and prepare to present my product.
+    In the end I'm content with my end-product. If I had more time, I would have hoped to explore additonal Unity features, refine my lamp design, and add additonal features beyond 
+    the button states such as a progress tracker. 
+
+    <br><br>
+
+    <Strong>TerraSync Functionality</Strong>
+
+    <br>   <br>
+     TerraSync is a lamp that has 3 entry points. One is on the side for a photoreistor that detects that brightness of the room. 
+     The second is a button on the top of the base of the lamp where a user can toggle through the different virtual states displayed on Unity.
+     The third is an opening on the side for the USB cord. 
+    <br> <br>
+     When the photoreistor detects its in a bright room, the LEDs are dim, and the Unity scene dispalys a daytime-background. 
+     Likewise, when it it is in a dark room, the LED's glow brightly, and the virtual scene displays a dark night-time background.
+    <br> <br>
+    The button states are for studying. When a user wants to begin a focus session, they hold the button to turn focus mode on.
+    This in turn changes the focus state button from start -> ON, and the virtual scene displays the growth of plants and bushes. 
+    When a user wants to finish their study session, they press the button twice to turn off focus mode. After being pressed once the button state goes from ON 
+    -> Disable Focus Mode? After being pressed twice the virtual message displays -> Focus mode OFF. Which then displays the shirinkage of the plants.
+
+
+  </p>
+  <br><br>
+
+      <p>Schematic:</p>
+      <div class="schematic">
+      <img src="schemtsync.png" />
+      <p>I chose to draws the schematics like this because each component shares the same ground, the button is using 
+        a built in 10K resistor, the photoreistor uses a 10K resistor, and each LED has uses a 220 resistor.</p>
+      <br>
+
+      <p>Circuit:</p>
+       <img src="IMG_1348.jpeg" />
+       <p> I utilized a lot of alligator clips so that my button and photoreistor could sit comfortably outside of my breadboard
+        <br> and so that they'd be visible and accessible to the lamp exterior. 
+        <br> Additionally, I chose to use blue, white, and yellow LED's to display visible "evening" light under my dome. </p>
+      <br>
+      <p>Ohm's Law Calculations</p>
+      <img src="IMG_1007.jpeg" />
+      <p>I chose to use a 220 OHM resistor for each LED because after calculating Ohm's law for each LED, 220 was the safest and most reasonable option. 
+        <br>Likeiwse, I 
+        calculated an example middle number for R2 for the photoreistor to show how much R2 would be if the photoresisotr was detecting "medium" brightness.
+      </p>
+      <br> <br>
+      <p>Firmware:</p>
+
+     <pre><code>
+/*
+  Valentina Filizola
+  TerraSync! Assignment 
+  HCDE 439
+*/
+
+// Pin definitions
+const int lightSensorPin = A0;   // photoresistor
+const int buttonPin = 2;         // button
+
+// LED pins
+const int led1 = 9;   // white LED
+const int led2 = 10;  // yellow LED
+const int led3 = 11;  // blue LED
+
+void setup() {
+
+  // needed to match the speed at which serial would go to unity code
+  Serial.begin(9600);
+
+  // initializes button as an input
+  pinMode(buttonPin, INPUT_PULLUP);
+
+  // initializes LED's as outputs
+  pinMode(led1, OUTPUT);
+  pinMode(led2, OUTPUT);
+  pinMode(led3, OUTPUT);
+}
+
+void loop() {
+
+  // Read the photoresistor
+  int lightValue = analogRead(lightSensorPin); // 0–1023
+
+  // Read the button
+  int buttonState = digitalRead(buttonPin);
+
+  // sets button as pressed as 0
+  int buttonPressed = 0;
+
+  //checks if button is pressed
+  if (buttonState == LOW) {
+    // button is pressed (serial comm sends this to unity as 1)
+    buttonPressed = 1;
+  }
+
+  // Constrain range so LEDs dim earlier (but stay bright in darkness)
+  int constrainedLight = constrain(lightValue, 0, 600);
+
+  // Dark -> bright LEDs
+  int brightness = map(constrainedLight, 0, 600, 255, 0);
+
+  // Set LED brightness
+  analogWrite(led1, brightness);
+  analogWrite(led2, brightness);
+  analogWrite(led3, brightness);
+
+  // Send sensor data to Unity (format Unity expects)
+  Serial.print("L:");
+  Serial.print(lightValue);
+  Serial.print(",B:");
+  Serial.println(buttonPressed);
+
+
+  //Short delay to avoid debouncing
+  delay(20);
+}
+
+</code></pre>
+<br>
+
+<p>Circuit's Operation</p>
+<img src="Untitled design-6.gif" alt="My GIF">
+<br>
+
+      </div>
+
+   
+  </body>
+</html>
